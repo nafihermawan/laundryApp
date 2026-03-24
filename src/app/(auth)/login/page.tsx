@@ -22,27 +22,6 @@ export default async function LoginPage({
     redirect(role === "admin" ? "/admin" : "/kasir");
   }
 
-  async function signIn(formData: FormData) {
-    "use server";
-
-    const supabase = await createClient();
-    const email = String(formData.get("email") ?? "");
-    const password = String(formData.get("password") ?? "");
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) redirect("/login?error=1");
-
-    const userId = data.user?.id;
-    if (!userId) redirect("/kasir");
-
-    const role = await getUserRole(supabase, userId);
-    redirect(role === "admin" ? "/admin" : "/kasir");
-  }
-
   return (
     <div className="flex flex-col gap-6 text-white">
       <div className="flex flex-col gap-2">
@@ -63,7 +42,7 @@ export default async function LoginPage({
         </div>
       ) : null}
 
-      <form action={signIn} className="flex flex-col gap-4">
+      <form action="/auth/sign-in" method="post" className="flex flex-col gap-4">
         <label className="flex flex-col gap-2">
           <span className="text-sm font-medium text-white/80">Email</span>
           <input

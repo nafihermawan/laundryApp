@@ -1,10 +1,29 @@
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { createClient } from "@/lib/supabase/server";
+import { type Database } from "@/lib/supabase/database.types";
 
 export async function GET(request: NextRequest) {
-  const supabase = await createClient();
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  const response = NextResponse.redirect(new URL("/login", request.url));
+  if (!url || !anonKey) return response;
+
+  const supabase = createServerClient<Database>(url, anonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
+        });
+      },
+    },
+  });
+
   await supabase.auth.signOut();
 
-  return NextResponse.redirect(new URL("/login", request.url));
+  return response;
 }
