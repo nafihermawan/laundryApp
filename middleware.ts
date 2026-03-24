@@ -5,6 +5,7 @@ import { Database } from "./src/lib/supabase/database.types";
 // Note: we don't import `env.ts` directly here because middleware runs on edge runtime
 // and sometimes zod or other node modules can be tricky, but we can safely check process.env directly
 export async function middleware(request: NextRequest) {
+  const isProd = process.env.NODE_ENV === "production";
   const response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -26,7 +27,7 @@ export async function middleware(request: NextRequest) {
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
+          response.cookies.set(name, value, { ...options, secure: isProd });
         });
       },
     },

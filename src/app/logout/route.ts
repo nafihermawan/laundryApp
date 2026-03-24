@@ -4,10 +4,11 @@ import { NextResponse, type NextRequest } from "next/server";
 import { type Database } from "@/lib/supabase/database.types";
 
 export async function GET(request: NextRequest) {
+  const isProd = process.env.NODE_ENV === "production";
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  const response = NextResponse.redirect(new URL("/login", request.url));
+  const response = NextResponse.redirect(new URL("/login", request.url), 303);
   if (!url || !anonKey) return response;
 
   const supabase = createServerClient<Database>(url, anonKey, {
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
+          response.cookies.set(name, value, { ...options, secure: isProd });
         });
       },
     },
